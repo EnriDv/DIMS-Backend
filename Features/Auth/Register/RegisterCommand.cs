@@ -1,11 +1,11 @@
 namespace DIMS_Backend.Features.Auth.Register;
 
 using MediatR;
+using DIMS_Backend.Common;
 
-public class RegisterCommand : IRequest<Guid>
-{
-    public string Nombre { get; set; } = string.Empty;
-    public string Email { get; set; } = string.Empty;
-    public string Password { get; set; } = string.Empty;
-    public string Rol { get; set; } = "admin"; // Por defecto lo haremos admin
-}
+public record RegisterCommand(
+    string Nombre,
+    string Email,
+    string Password,
+    string Rol = "estudiante"
+) : IRequest<Result<Guid>>;

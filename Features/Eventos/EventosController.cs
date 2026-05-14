@@ -6,6 +6,7 @@ using MediatR;
 using System.Security.Claims;
 using DIMS_Backend.Features.Eventos.GetEventos;
 using DIMS_Backend.Features.Eventos.SuscribirEvento;
+using DIMS_Backend.Features.Eventos.GetEventoById;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -24,6 +25,14 @@ public class EventosController : ControllerBase
     [Authorize(Roles = "admin,docente")]
     public async Task<IActionResult> GetAllAdmin([FromQuery] int? carreraId)
         => Ok(await _mediator.Send(new GetEventosQuery(carreraId, IncludeUnpublished: true, SoloProximos: false)));
+
+    [HttpGet("{id}")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetById(int id)
+    {
+        var evento = await _mediator.Send(new GetEventoByIdQuery(id));
+        return evento != null ? Ok(evento) : NotFound();
+    }
 
     [HttpPost("{id}/suscribir")]
     [Authorize]

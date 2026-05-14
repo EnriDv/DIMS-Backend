@@ -23,7 +23,11 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> Login([FromBody] LoginCommand command)
     {
         var result = await _mediator.Send(command);
-        return Ok(result);
+        if (result.IsFailure)
+        {
+            return Unauthorized(new { error = result.Error.Message });
+        }
+        return Ok(result.Value);
     }
 
     [HttpPost("refresh")]
@@ -42,11 +46,15 @@ public class AuthController : ControllerBase
         return Ok(result);
     }
 
-    [HttpPost("seed-admin")]
-    // [ApiExplorerSettings(IgnoreApi = true)] // Descomenta esto para ocultarlo de Swagger
-    public async Task<IActionResult> SeedAdmin([FromBody] RegisterCommand command)
+    [HttpPost("register")]
+    [AllowAnonymous]
+    public async Task<IActionResult> Register([FromBody] RegisterCommand command)
     {
         var result = await _mediator.Send(command);
-        return Ok(new { Mensaje = "Usuario administrador creado con éxito", UserId = result });
+        if (result.IsFailure)
+        {
+            return BadRequest(new { error = result.Error.Message });
+        }
+        return Ok(new { Mensaje = "Usuario creado con éxito", UserId = result.Value });
     }
 }

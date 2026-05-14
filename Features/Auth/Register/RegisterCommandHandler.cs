@@ -4,8 +4,9 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using DIMS_Backend.Models;
 using DIMS_Backend.Infrastructure.Security;
+using DIMS_Backend.Common;
 
-public class RegisterCommandHandler : IRequestHandler<RegisterCommand, Guid>
+public class RegisterCommandHandler : IRequestHandler<RegisterCommand, Result<Guid>>
 {
     private readonly UcbPortalContext _context;
     private readonly IPasswordHasher _passwordHasher;
@@ -16,13 +17,13 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, Guid>
         _passwordHasher = passwordHasher;
     }
 
-    public async Task<Guid> Handle(RegisterCommand request, CancellationToken cancellationToken)
+    public async Task<Result<Guid>> Handle(RegisterCommand request, CancellationToken cancellationToken)
     {
         // Verificar si el correo ya existe para no duplicar
         var existeUser = await _context.Users.AnyAsync(u => u.Email == request.Email, cancellationToken);
         if (existeUser)
         {
-            throw new ArgumentException("El correo ya está registrado.");
+            return Result<Guid>.Failure(new Error("Auth.DuplicateEmail", "El correo ya está registrado."));
         }
 
         var user = new User
@@ -40,6 +41,6 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, Guid>
         _context.Users.Add(user);
         await _context.SaveChangesAsync(cancellationToken);
 
-        return user.Id;
+        return Result<Guid>.Success(user.Id);
     }
 }

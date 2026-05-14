@@ -40,14 +40,14 @@ public sealed class JwtProvider : IJwtProvider
     private string GenerateToken(User user, TimeSpan expiresIn)
     {
         // 1. Obtener las llaves de configuración
-        var secretKey = _configuration["Jwt:SecretKey"]
-            ?? throw new ArgumentNullException("Jwt:SecretKey no está configurado en appsettings.json");
+        var secretKey = _configuration["JWT_SECRET_KEY"] ?? _configuration["Jwt:SecretKey"]
+            ?? throw new ArgumentNullException("JWT_SECRET_KEY no está configurado");
 
-        var issuer = _configuration["Jwt:Issuer"]
-            ?? throw new ArgumentNullException("Jwt:Issuer no está configurado");
+        var issuer = _configuration["JWT_ISSUER"] ?? _configuration["Jwt:Issuer"]
+            ?? throw new ArgumentNullException("JWT_ISSUER no está configurado");
 
-        var audience = _configuration["Jwt:Audience"]
-            ?? throw new ArgumentNullException("Jwt:Audience no está configurado");
+        var audience = _configuration["JWT_AUDIENCE"] ?? _configuration["Jwt:Audience"]
+            ?? throw new ArgumentNullException("JWT_AUDIENCE no está configurado");
 
         // 2. Configurar la firma digital
         var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));

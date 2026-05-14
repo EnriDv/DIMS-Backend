@@ -4,8 +4,9 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using DIMS_Backend.Models; // Asegúrate de que apunte a tus modelos generados
 using DIMS_Backend.Infrastructure.Security;
+using DIMS_Backend.Common;
 
-public class LoginCommandHandler : IRequestHandler<LoginCommand, AuthResultDto>
+public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<AuthResultDto>>
 {
     private readonly UcbPortalContext _context;
     private readonly IPasswordHasher _passwordHasher;
@@ -21,7 +22,7 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, AuthResultDto>
         _jwtProvider = jwtProvider;
     }
 
-    public async Task<AuthResultDto> Handle(LoginCommand request, CancellationToken cancellationToken)
+    public async Task<Result<AuthResultDto>> Handle(LoginCommand request, CancellationToken cancellationToken)
     {
         // 1. Buscar al usuario por correo electrónico
         var user = await _context.Users
@@ -31,14 +32,14 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, AuthResultDto>
         // Nota: Lanzamos excepciones generales por seguridad (no dar pistas a atacantes)
         if (user == null || user.Activo == false)
         {
-            throw new UnauthorizedAccessException("Credenciales incorrectas o cuenta inactiva.");
+            return Result<AuthResultDto>.Failure(new Error("Auth.InvalidCredentials", "Credenciales incorrectas o cuenta inactiva."));
         }
 
         bool isPasswordValid = _passwordHasher.Verify(request.Password, user.PasswordHash);
 
         if (!isPasswordValid)
         {
-            throw new UnauthorizedAccessException("Credenciales incorrectas o cuenta inactiva.");
+            return Result<AuthResultDto>.Failure(new Error("Auth.InvalidCredentials", "Credenciales incorrectas o cuenta inactiva."));
         }
 
         // 3. Generar Access Token (15 min) y Refresh Token (7 días)
@@ -46,7 +47,7 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, AuthResultDto>
         string refreshToken = _jwtProvider.GenerateRefreshToken(user);
 
         // 4. Retornar los datos al frontend
-        return new AuthResultDto
+        return Result<AuthResultDto>.Success(new AuthResultDto
         {
             AccessToken = accessToken,
             RefreshToken = refreshToken,
@@ -54,6 +55,6 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, AuthResultDto>
             Nombre = user.Nombre,
             Email = user.Email,
             Rol = user.Rol
-        };
+        });
     }
 }

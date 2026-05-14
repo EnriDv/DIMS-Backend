@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using MediatR;
 using DIMS_Backend.Features.Noticias.GetNoticias;
 using DIMS_Backend.Features.Noticias.CreateNoticia;
+using DIMS_Backend.Features.Noticias.GetNoticiaById;
 
 namespace DIMS_Backend.Features.Noticias;
 
@@ -23,6 +24,14 @@ public class NoticiasController : ControllerBase
     [Authorize(Roles = "admin,docente")]
     public async Task<IActionResult> GetAllAdmin([FromQuery] int? carreraId)
         => Ok(await _mediator.Send(new GetNoticiasQuery(carreraId, IncludeUnpublished: true)));
+
+    [HttpGet("{id}")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetById(int id)
+    {
+        var noticia = await _mediator.Send(new GetNoticiaByIdQuery(id));
+        return noticia != null ? Ok(noticia) : NotFound();
+    }
 
     [HttpPost]
     [Authorize(Roles = "admin,docente")]
