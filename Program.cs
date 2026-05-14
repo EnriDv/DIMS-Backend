@@ -15,8 +15,17 @@ if (!File.Exists("/.dockerenv"))
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Construir connection string desde variables de entorno
+var dbHost = builder.Configuration["DB_HOST"] ?? "localhost";
+var dbPort = builder.Configuration["DB_PORT"] ?? "5432";
+var dbName = builder.Configuration["DB_NAME"] ?? "DIMS";
+var dbUsername = builder.Configuration["DB_USERNAME"] ?? "postgres";
+var dbPassword = builder.Configuration["DB_PASSWORD"] ?? "";
+
+var connectionString = $"Host={dbHost};Port={dbPort};Database={dbName};Username={dbUsername};Password={dbPassword}";
+
 builder.Services.AddDbContext<UcbPortalContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(connectionString));
 
 builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
 builder.Services.AddScoped<IJwtProvider, JwtProvider>();
@@ -49,9 +58,17 @@ builder.Services.AddAuthorization();
 // ==========================================
 builder.Services.AddCors(options =>
 {
+    var corsOriginsRaw = builder.Configuration["CORS_ORIGINS"];
+    if (string.IsNullOrWhiteSpace(corsOriginsRaw))
+    {
+        throw new InvalidOperationException("CORS_ORIGINS is required and must be a comma-separated list of allowed origins.");
+    }
+
+    var corsOrigins = corsOriginsRaw.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
     options.AddPolicy("AllowFrontend",
         policy => policy
-            .WithOrigins("http://localhost:3000", "http://localhost:5173", "http://localhost:4321", "http://localhost:4200")
+            .WithOrigins(corsOrigins)
             .AllowAnyHeader()
             .AllowAnyMethod());
 });
@@ -69,8 +86,6 @@ if (app.Environment.IsDevelopment())
     // Levanta la interfaz gráfica de Scalar en /scalar/v1
     app.MapScalarApiReference();
 }
-
-app.UseHttpsRedirection();
 
 // CORS debe ir antes de Auth
 app.UseCors("AllowFrontend");
