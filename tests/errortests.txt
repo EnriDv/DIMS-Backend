@@ -1,0 +1,284 @@
+PS C:\Users\dikyd\Documents\PROYECTOS\DIMS_Astro> npm ci
+npm warn ERESOLVE overriding peer dependency
+npm warn ERESOLVE overriding peer dependency
+npm error code EUSAGE
+npm error
+npm error `npm ci` can only install packages when your package.json and package-lock.json or npm-shrinkwrap.json are in sync. Please update your lock file with `npm install` before continuing.
+npm error
+npm error Missing: @vitest/coverage-v8@4.1.7 from lock file
+npm error Invalid: lock file's vitest@4.1.0 does not satisfy vitest@4.1.7
+npm error Invalid: lock file's @vitest/ui@4.1.0 does not satisfy @vitest/ui@4.1.7
+npm error Missing: @bcoe/v8-coverage@1.0.2 from lock file
+npm error Invalid: lock file's @vitest/utils@4.1.0 does not satisfy @vitest/utils@4.1.7
+npm error Missing: ast-v8-to-istanbul@1.0.0 from lock file
+npm error Missing: istanbul-lib-coverage@3.2.2 from lock file
+npm error Missing: istanbul-lib-report@3.0.1 from lock file
+npm error Missing: istanbul-reports@3.2.0 from lock file
+npm error Invalid: lock file's flatted@3.4.0 does not satisfy flatted@3.4.2
+npm error Invalid: lock file's @vitest/pretty-format@4.1.0 does not satisfy @vitest/pretty-format@4.1.7
+npm error Missing: js-tokens@10.0.0 from lock file
+npm error Missing: make-dir@4.0.0 from lock file
+npm error Missing: supports-color@7.2.0 from lock file
+npm error Missing: html-escaper@2.0.2 from lock file
+npm error Missing: has-flag@4.0.0 from lock file
+npm error Invalid: lock file's @vitest/expect@4.1.0 does not satisfy @vitest/expect@4.1.7
+npm error Invalid: lock file's @vitest/mocker@4.1.0 does not satisfy @vitest/mocker@4.1.7
+npm error Invalid: lock file's @vitest/runner@4.1.0 does not satisfy @vitest/runner@4.1.7
+npm error Invalid: lock file's @vitest/snapshot@4.1.0 does not satisfy @vitest/snapshot@4.1.7
+npm error Invalid: lock file's @vitest/spy@4.1.0 does not satisfy @vitest/spy@4.1.7
+npm error
+npm error Clean install a project
+npm error
+npm error Usage:
+npm error npm ci
+npm error
+npm error Options:
+npm error [--install-strategy <hoisted|nested|shallow|linked>] [--legacy-bundling]
+npm error [--global-style] [--omit <dev|optional|peer> [--omit <dev|optional|peer> ...]]
+npm error [--include <prod|dev|optional|peer> [--include <prod|dev|optional|peer> ...]]
+npm error [--strict-peer-deps] [--foreground-scripts] [--ignore-scripts] [--no-audit]
+npm error [--no-bin-links] [--no-fund] [--dry-run]
+npm error [-w|--workspace <workspace-name> [-w|--workspace <workspace-name> ...]]
+npm error [-ws|--workspaces] [--include-workspace-root] [--install-links]
+npm error
+npm error aliases: clean-install, ic, install-clean, isntall-clean
+npm error
+npm error Run "npm help ci" for more info
+npm error A complete log of this run can be found in: C:\Users\dikyd\AppData\Local\npm-cache\_logs\2026-05-21T22_32_09_224Z-debug-0.log
+PS C:\Users\dikyd\Documents\PROYECTOS\DIMS_Astro> npm run test:ci
+
+> dims-astro@0.0.1 test:ci
+> vitest --coverage --run
+
+ MISSING DEPENDENCY  Cannot find dependency '@vitest/coverage-v8'
+
+√ Do you want to install @vitest/coverage-v8? ... yes
+
+added 11 packages, and audited 568 packages in 18s
+
+209 packages are looking for funding
+  run `npm fund` for details
+
+20 vulnerabilities (9 moderate, 11 high)
+
+To address issues that do not require attention, run:
+  npm audit fix
+
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+
+Run `npm audit` for details.
+
+Package @vitest/coverage-v8@4.1.0 installed, re-run the command to start.
+PS C:\Users\dikyd\Documents\PROYECTOS\DIMS_Astro> npm run test:ci
+
+> dims-astro@0.0.1 test:ci
+> vitest --coverage --run
+
+
+ RUN  v4.1.0 C:/Users/dikyd/Documents/PROYECTOS/DIMS_Astro
+      Coverage enabled with v8
+
+ ❯ src/tests/BotonSuscripcion.int.test.tsx (0 test)
+ ❯ src/tests/auth.store.spec.ts (0 test)
+ ❯ src/tests/jwt.spec.ts (0 test)
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯ Failed Suites 3 ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/tests/auth.store.spec.ts [ src/tests/auth.store.spec.ts ]
+ FAIL  src/tests/BotonSuscripcion.int.test.tsx [ src/tests/BotonSuscripcion.int.test.tsx ]
+ FAIL  src/tests/jwt.spec.ts [ src/tests/jwt.spec.ts ]
+TypeError: Cannot convert undefined or null to object
+ ❯ src/tests/setup.ts:6:8
+      4| import matchers from '@testing-library/jest-dom/matchers'
+      5|
+      6| expect.extend(matchers)
+       |        ^
+      7|
+      8| afterEach(() => {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+
+ Test Files  3 failed (3)
+      Tests  no tests
+   Start at  18:33:35
+   Duration  5.71s (transform 282ms, setup 0ms, import 0ms, tests 0ms, environment 10.06s)
+
+PS C:\Users\dikyd\Documents\PROYECTOS\DIMS_Astro> npm ci         
+npm error code EPERM
+npm error syscall unlink
+npm error path C:\Users\dikyd\Documents\PROYECTOS\DIMS_Astro\node_modules\@rollup\rollup-win32-x64-msvc\rollup.win32-x64-msvc.node
+npm error errno -4048
+npm error [Error: EPERM: operation not permitted, unlink 'C:\Users\dikyd\Documents\PROYECTOS\DIMS_Astro\node_modules\@rollup\rollup-win32-x64-msvc\rollup.win32-x64-msvc.node'] {
+npm error   errno: -4048,
+npm error   code: 'EPERM',
+npm error   syscall: 'unlink',
+npm error   path: 'C:\\Users\\dikyd\\Documents\\PROYECTOS\\DIMS_Astro\\node_modules\\@rollup\\rollup-win32-x64-msvc\\rollup.win32-x64-msvc.node'
+npm error }
+npm error
+npm error The operation was rejected by your operating system.
+npm error It's possible that the file was already in use (by a text editor or antivirus),
+npm error or that you lack permissions to access it.
+npm error
+npm error If you believe this might be a permissions issue, please double-check the
+npm error permissions of the file and its containing directories, or try running
+npm error the command again as root/Administrator.
+npm error A complete log of this run can be found in: C:\Users\dikyd\AppData\Local\npm-cache\_logs\2026-05-21T22_33_55_703Z-debug-0.log
+PS C:\Users\dikyd\Documents\PROYECTOS\DIMS_Astro> npm run test:ci
+
+> dims-astro@0.0.1 test:ci
+> vitest --coverage --run
+
+'vitest' is not recognized as an internal or external command,
+operable program or batch file.
+PS C:\Users\dikyd\Documents\PROYECTOS\DIMS_Astro> Get-Process node -ErrorAction SilentlyContinue | Stop-Process -Force
+PS C:\Users\dikyd\Documents\PROYECTOS\DIMS_Astro> npm install vitest                                                  
+npm warn ERESOLVE overriding peer dependency
+npm warn While resolving: dims-astro@0.0.1
+npm warn Found: vitest@4.1.0
+npm warn node_modules/vitest
+npm warn   peer vitest@"4.1.0" from @vitest/coverage-v8@4.1.0
+npm warn   node_modules/@vitest/coverage-v8
+npm warn     dev @vitest/coverage-v8@"^4.1.0" from the root project
+npm warn   2 more (@vitest/ui, the root project)
+npm warn
+npm warn Could not resolve dependency:
+npm warn peer vitest@"4.1.0" from @vitest/coverage-v8@4.1.0
+npm warn node_modules/@vitest/coverage-v8
+npm warn   dev @vitest/coverage-v8@"^4.1.0" from the root project
+npm warn ERESOLVE overriding peer dependency
+npm warn While resolving: dims-astro@0.0.1
+npm warn Found: vitest@4.1.0
+npm warn node_modules/vitest
+npm warn   peer vitest@"4.1.0" from @vitest/coverage-v8@4.1.0
+npm warn   node_modules/@vitest/coverage-v8
+npm warn     dev @vitest/coverage-v8@"^4.1.0" from the root project
+npm warn   2 more (@vitest/ui, the root project)
+npm warn
+npm warn Could not resolve dependency:
+npm warn peer vitest@"4.1.0" from @vitest/ui@4.1.0
+npm warn node_modules/@vitest/ui
+npm warn   peerOptional @vitest/ui@"4.1.0" from vitest@4.1.0
+npm warn   1 more (the root project)
+npm warn ERESOLVE overriding peer dependency
+npm warn While resolving: dims-astro@0.0.1
+npm warn Found: vitest@4.1.0
+npm warn node_modules/vitest
+npm warn   peer vitest@"4.1.0" from @vitest/coverage-v8@4.1.0
+npm warn   node_modules/@vitest/coverage-v8
+npm warn     dev @vitest/coverage-v8@"^4.1.0" from the root project
+npm warn   2 more (@vitest/ui, the root project)
+npm warn
+npm warn Could not resolve dependency:
+npm warn peer vitest@"4.1.0" from @vitest/ui@4.1.0
+npm warn node_modules/@vitest/ui
+npm warn   peerOptional @vitest/ui@"4.1.0" from vitest@4.1.0
+npm warn   1 more (the root project)
+npm warn ERESOLVE overriding peer dependency
+npm warn While resolving: dims-astro@0.0.1
+npm warn Found: vitest@4.1.0
+npm warn node_modules/vitest
+npm warn   peer vitest@"4.1.0" from @vitest/coverage-v8@4.1.0
+npm warn   node_modules/@vitest/coverage-v8
+npm warn     dev @vitest/coverage-v8@"^4.1.0" from the root project
+npm warn   2 more (@vitest/ui, the root project)
+npm warn
+npm warn Could not resolve dependency:
+npm warn peer vitest@"4.1.0" from @vitest/ui@4.1.0
+npm warn node_modules/@vitest/ui
+npm warn   peerOptional @vitest/ui@"4.1.0" from vitest@4.1.0
+npm warn   1 more (the root project)
+
+added 454 packages, changed 112 packages, and audited 568 packages in 1m
+
+209 packages are looking for funding
+  run `npm fund` for details
+
+16 vulnerabilities (9 moderate, 7 high)
+
+To address issues that do not require attention, run:
+  npm audit fix
+
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+
+Run `npm audit` for details.
+PS C:\Users\dikyd\Documents\PROYECTOS\DIMS_Astro> npm run test:ci                                                     
+
+> dims-astro@0.0.1 test:ci
+> vitest --coverage --run
+
+
+ RUN  v4.1.7 C:/Users/dikyd/Documents/PROYECTOS/DIMS_Astro
+      Coverage enabled with v8
+
+stderr | src/tests/auth.store.spec.ts > auth store > login sets user and tokens
+Error decoding JWT: DOMException [InvalidCharacterError]: The string to be decoded is not correctly encoded.
+    at atob (node:buffer:1296:13)
+    at decodeJwtPayload (C:/Users/dikyd/Documents/PROYECTOS/DIMS_Astro/src/lib/jwt.ts:19:14)
+    at isTokenExpired (C:/Users/dikyd/Documents/PROYECTOS/DIMS_Astro/src/lib/jwt.ts:50:19)
+    at isAuthenticated (C:/Users/dikyd/Documents/PROYECTOS/DIMS_Astro/src/stores/auth.ts:66:11)
+    at C:/Users/dikyd/Documents/PROYECTOS/DIMS_Astro/src/tests/auth.store.spec.ts:16:12
+    at file:///C:/Users/dikyd/Documents/PROYECTOS/DIMS_Astro/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11
+    at file:///C:/Users/dikyd/Documents/PROYECTOS/DIMS_Astro/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26
+    at file:///C:/Users/dikyd/Documents/PROYECTOS/DIMS_Astro/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20
+    at new Promise (<anonymous>)
+    at runWithCancel (file:///C:/Users/dikyd/Documents/PROYECTOS/DIMS_Astro/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)
+
+ ✓ src/tests/jwt.spec.ts (3 tests) 24ms
+ ❯ src/tests/auth.store.spec.ts (3 tests | 1 failed) 106ms
+     × login sets user and tokens 79ms
+     ✓ logout clears data 13ms
+     ✓ setTokens updates access token 2ms
+stderr | src/tests/BotonSuscripcion.int.test.tsx > BotonSuscripcion integration > calls suscribir when authenticated
+Error decoding JWT: DOMException [InvalidCharacterError]: The string to be decoded is not correctly encoded.
+    at atob (node:buffer:1296:13)
+    at decodeJwtPayload (C:/Users/dikyd/Documents/PROYECTOS/DIMS_Astro/src/lib/jwt.ts:19:14)
+    at isTokenExpired (C:/Users/dikyd/Documents/PROYECTOS/DIMS_Astro/src/lib/jwt.ts:50:19)
+    at isAuthenticated (C:/Users/dikyd/Documents/PROYECTOS/DIMS_Astro/src/stores/auth.ts:66:11)
+    at handleSuscripcion (C:/Users/dikyd/Documents/PROYECTOS/DIMS_Astro/src/components/eventos/BotonSuscripcion.tsx:16:10)
+    at executeDispatch (C:\Users\dikyd\Documents\PROYECTOS\DIMS_Astro\node_modules\react-dom\cjs\react-dom-client.development.js:19116:9)
+    at runWithFiberInDEV (C:\Users\dikyd\Documents\PROYECTOS\DIMS_Astro\node_modules\react-dom\cjs\react-dom-client.development.js:874:13)
+    at processDispatchQueue (C:\Users\dikyd\Documents\PROYECTOS\DIMS_Astro\node_modules\react-dom\cjs\react-dom-client.development.js:19166:19)
+    at C:\Users\dikyd\Documents\PROYECTOS\DIMS_Astro\node_modules\react-dom\cjs\react-dom-client.development.js:19767:9
+    at batchedUpdates$1 (C:\Users\dikyd\Documents\PROYECTOS\DIMS_Astro\node_modules\react-dom\cjs\react-dom-client.development.js:3255:40)
+
+Not implemented: navigation to another Document
+ ❯ src/tests/BotonSuscripcion.int.test.tsx (2 tests | 1 failed) 1276ms
+     ✓ redirects to login when unauthenticated and no refresh token  933ms
+     × calls suscribir when authenticated 329ms
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/tests/auth.store.spec.ts > auth store > login sets user and tokens
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ src/tests/auth.store.spec.ts:16:31
+     14|     expect($currentUser.get()).toEqual(user)
+     15|     expect($accessToken.get()).toBe('access.token')
+     16|     expect(isAuthenticated()).toBe(true)
+       |                               ^
+     17|   })
+     18|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  src/tests/BotonSuscripcion.int.test.tsx > BotonSuscripcion integration > calls suscribir when authenticated
+AssertionError: expected "vi.fn()" to be called with arguments: [ 42 ]
+
+Number of calls: 0
+
+ ❯ src/tests/BotonSuscripcion.int.test.tsx:58:38
+     56|
+     57|     const { eventosService } = (await import('@/lib/api/eventos.service')) as any
+     58|     expect(eventosService.suscribir).toHaveBeenCalledWith(42)
+       |                                      ^
+     59|   })
+     60| })

@@ -47,6 +47,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Remove="tests\**\*.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Include="C:\Users\dikyd\source\repos\DIMS-Backend\DIMS-Backend\.editorconfig" />
   </ItemGroup>
 
