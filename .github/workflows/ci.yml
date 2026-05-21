@@ -1,0 +1,37 @@
+name: Backend CI
+
+on:
+  push:
+    branches: ["main", "develop", "feat/*"]
+  pull_request:
+    branches: ["main", "develop", "feat/*"]
+
+jobs:
+  validate-backend:
+    name: Validate .NET Backend
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Restore dependencies
+        run: dotnet restore DIMS-Backend.csproj
+
+      - name: Build project
+        run: dotnet build DIMS-Backend.csproj --no-restore -c Release
+
+      - name: Run tests
+        run: |
+          dotnet test ./tests/DIMS-Backend.Tests.csproj --logger "trx;LogFileName=test_results.trx" --results-directory ./TestResults /p:CollectCoverage=true /p:CoverletOutput=./TestResults/coverage.json /p:CoverletOutputFormat=json
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-test-results
+          path: ./TestResults
