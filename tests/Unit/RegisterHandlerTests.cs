@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using DIMS_Backend.Models;
 using DIMS_Backend.Features.Auth.Register;
 using DIMS_Backend.Infrastructure.Security;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace DIMS_Backend.Tests;
 
@@ -18,7 +19,8 @@ public class RegisterHandlerTests
 
         using var context = new UcbPortalContext(options);
         var hasher = new PasswordHasher();
-        var handler = new RegisterCommandHandler(context, hasher);
+        var logger = NullLogger<RegisterCommandHandler>.Instance;
+        var handler = new RegisterCommandHandler(context, hasher, logger);
 
         var command = new RegisterCommand(
             Nombre: "Test",
