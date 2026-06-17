@@ -8,9 +8,11 @@ using DIMS_Backend.Models;
 using DIMS_Backend.Infrastructure.Security;
 using Serilog;
 using Serilog.Formatting.Compact;
+using Amazon.S3;
+using DIMS_Backend.Infrastructure.BackgroundServices;
 
-// Cargar variables de entorno desde archivo .env SOLO en desarrollo local (no en Docker)
-if (!File.Exists("/.dockerenv"))
+// Cargar variables de entorno desde archivo .env SOLO en desarrollo local (no en Docker) si existe
+if (!File.Exists("/.dockerenv") && File.Exists(".env"))
 {
     Env.Load();
 }
@@ -53,13 +55,28 @@ try
 
     var connectionString = $"Host={dbHost};Port={dbPort};Database={dbName};Username={dbUsername};Password={dbPassword}";
 
+    // Conditionally configure database provider to prevent provider conflicts in tests
     builder.Services.AddDbContext<UcbPortalContext>(options =>
-        options.UseNpgsql(connectionString));
+    {
+        if (builder.Configuration.GetValue<bool>("UseInMemoryDatabase"))
+        {
+            options.UseInMemoryDatabase("InMemoryDbForTesting");
+        }
+        else
+        {
+            options.UseNpgsql(connectionString);
+        }
+    });
 
     builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
     builder.Services.AddScoped<IJwtProvider, JwtProvider>();
 
     builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
+
+    // Registrar servicios de AWS y Background S3 Worker
+    builder.Services.AddAWSService<IAmazonS3>();
+    builder.Services.AddSingleton<S3BackgroundQueue>();
+    builder.Services.AddHostedService<S3BackgroundService>();
 
     // Registrar Manejador Global de Excepciones y Health Checks
     builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
@@ -99,7 +116,7 @@ try
         var corsOriginsRaw = builder.Configuration["CORS_ORIGINS"];
         if (string.IsNullOrWhiteSpace(corsOriginsRaw))
         {
-            throw new InvalidOperationException("CORS_ORIGINS is required and must be a comma-separated list of allowed origins.");
+            corsOriginsRaw = "http://localhost:3000";
         }
 
         var corsOrigins = corsOriginsRaw.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
@@ -147,7 +164,9 @@ try
 }
 catch (Exception ex)
 {
+    Console.Error.WriteLine($"STARTUP CRASH: {ex}");
     Log.Fatal(ex, "El servidor web de DIMS-Backend terminó inesperadamente.");
+    throw;
 }
 finally
 {

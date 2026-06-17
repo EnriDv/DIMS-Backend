@@ -4,6 +4,7 @@ using Xunit;
 using Microsoft.EntityFrameworkCore;
 using DIMS_Backend.Models;
 using DIMS_Backend.Features.Eventos.SuscribirEvento;
+using DIMS_Backend.Infrastructure.BackgroundServices;
 
 namespace DIMS_Backend.Tests.Unit;
 
@@ -21,6 +22,7 @@ public class SuscribirEventoHandlerTests
         {
             Titulo = "Evento Con Cupo",
             Tipo = "charla",
+            Lugar = "Test Lugar",
             Capacidad = 10,
             Inscritos = 2,
             Publicado = true
@@ -28,7 +30,7 @@ public class SuscribirEventoHandlerTests
         context.Eventos.Add(evento);
         await context.SaveChangesAsync();
 
-        var handler = new SuscribirEventoHandler(context);
+        var handler = new SuscribirEventoHandler(context, new S3BackgroundQueue());
         var userId = Guid.NewGuid();
         var command = new SuscribirEventoCommand(evento.Id, userId);
 
@@ -56,6 +58,7 @@ public class SuscribirEventoHandlerTests
         {
             Titulo = "Evento Con Cupo 2",
             Tipo = "charla",
+            Lugar = "Test Lugar",
             Capacidad = 10,
             Inscritos = 2,
             Publicado = true
@@ -70,7 +73,7 @@ public class SuscribirEventoHandlerTests
         });
         await context.SaveChangesAsync();
 
-        var handler = new SuscribirEventoHandler(context);
+        var handler = new SuscribirEventoHandler(context, new S3BackgroundQueue());
         var command = new SuscribirEventoCommand(evento.Id, userId);
 
         var result = await handler.Handle(command, default);
@@ -90,6 +93,7 @@ public class SuscribirEventoHandlerTests
         {
             Titulo = "Evento Lleno",
             Tipo = "charla",
+            Lugar = "Test Lugar",
             Capacidad = 5,
             Inscritos = 5,
             Publicado = true
@@ -97,7 +101,7 @@ public class SuscribirEventoHandlerTests
         context.Eventos.Add(evento);
         await context.SaveChangesAsync();
 
-        var handler = new SuscribirEventoHandler(context);
+        var handler = new SuscribirEventoHandler(context, new S3BackgroundQueue());
         var userId = Guid.NewGuid();
         var command = new SuscribirEventoCommand(evento.Id, userId);
 
