@@ -1,4 +1,4 @@
-﻿name: Backend Continuous Deployment
+name: Backend Continuous Deployment
 
 on:
   push:
@@ -16,6 +16,11 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      - name: Set lowercase owner name
+        run: echo "OWNER_LC=${OWNER,,}" >> $GITHUB_ENV
+        env:
+          OWNER: ${{ github.repository_owner }}
+
       - name: Setup .NET 10
         uses: actions/setup-dotnet@v4
         with:
@@ -31,12 +36,12 @@ jobs:
 
       - name: Build Production Docker Image
         run: |
-          docker build -t ghcr.io/${{ github.repository_owner }}/dims-backend:latest -f dockerfile .
+          docker build -t ghcr.io/${{ env.OWNER_LC }}/dims-backend:latest -f dockerfile .
 
       - name: Trivy Container Vulnerability Scan
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: 'ghcr.io/${{ github.repository_owner }}/dims-backend:latest'
+          image-ref: 'ghcr.io/${{ env.OWNER_LC }}/dims-backend:latest'
           format: 'table'
           exit-code: '0'
           severity: 'CRITICAL,HIGH'
@@ -49,26 +54,18 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Push Image to GHCR
-        run: docker push ghcr.io/${{ github.repository_owner }}/dims-backend:latest
+        run: docker push ghcr.io/${{ env.OWNER_LC }}/dims-backend:latest
 
   deploy-to-ec2:
     name: Deploy Backend to EC2 via SSH
     needs: ci-and-security
     runs-on: ubuntu-latest
     steps:
-      - name: Execute Remote SSH Commands
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          context: .
-          file: dockerfile
-          push: true
-          tags: ghcr.io/${{ env.IMAGE_NAME }}:latest
+      - name: Set lowercase owner name
+        run: echo "OWNER_LC=${OWNER,,}" >> $GITHUB_ENV
+        env:
+          OWNER: ${{ github.repository_owner }}
 
-  deploy-to-ec2:
-    name: Deploy Backend to EC2 via SSH
-    needs: build-and-push
-    runs-on: ubuntu-latest
-    steps:
       - name: Execute Remote SSH Commands
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -77,9 +74,8 @@ jobs:
           key: ${{ secrets.AWS_SSH_PRIVATE_KEY }}
           script: |
             cd /home/ubuntu/apps/
-            # Autenticar Docker en GHCR desde la EC2 usando un Personal Access Token (PAT)
-            echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-            # Descargar la nueva versión y reiniciar solo el backend de forma limpia
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            export REPO_OWNER=${{ env.OWNER_LC }}
             docker compose -f docker-compose.prod.yml pull backend
             docker compose -f docker-compose.prod.yml up -d backend
             docker image prune -f
