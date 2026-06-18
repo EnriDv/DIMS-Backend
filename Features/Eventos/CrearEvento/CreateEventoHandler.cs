@@ -7,8 +7,6 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace DIMS_Backend.Features.Eventos.CrearEvento;
-
 public class CreateEventoHandler : IRequestHandler<CreateEventoCommand, int>
 {
     private static readonly HashSet<string> TiposPermitidos = new(StringComparer.OrdinalIgnoreCase)

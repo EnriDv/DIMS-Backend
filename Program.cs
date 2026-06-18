@@ -58,7 +58,22 @@ try
 
     var connectionString = $"Host={dbHost};Port={dbPort};Database={dbName};Username={dbUsername};Password={dbPassword}";
 
-    if (!builder.Environment.IsEnvironment("Testing"))
+    if (builder.Environment.IsEnvironment("Testing"))
+    {
+        builder.Services.AddDbContext<UcbPortalContext>(options =>
+        {
+            var assembly = AppDomain.CurrentDomain.GetAssemblies()
+                .FirstOrDefault(a => a.FullName != null && a.FullName.Contains("EntityFrameworkCore.InMemory"));
+            if (assembly != null)
+            {
+                var extensionType = assembly.GetType("Microsoft.EntityFrameworkCore.InMemoryDbContextOptionsExtensions");
+                var method = extensionType?.GetMethods()
+                    .FirstOrDefault(m => m.Name == "UseInMemoryDatabase" && !m.IsGenericMethod && m.GetParameters().Length == 3);
+                method?.Invoke(null, new object[] { options, "InMemoryDbForTesting", null });
+            }
+        });
+    }
+    else
     {
         builder.Services.AddDbContext<UcbPortalContext>(options =>
             options.UseNpgsql(connectionString));
