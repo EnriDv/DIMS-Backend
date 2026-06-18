@@ -21,7 +21,8 @@ public class DeleteEventoHandlerTests
             Titulo = "Evento a Borrar",
             Descripcion = "Borrado lógico",
             Tipo = "charla",
-            Publicado = true
+            Publicado = true,
+            Lugar = "Aula Test"
         };
         context.Eventos.Add(initialEvento);
         await context.SaveChangesAsync();
