@@ -56,8 +56,16 @@ try
 
     var connectionString = $"Host={dbHost};Port={dbPort};Database={dbName};Username={dbUsername};Password={dbPassword}";
 
-    builder.Services.AddDbContext<UcbPortalContext>(options =>
-        options.UseNpgsql(connectionString));
+    if (builder.Environment.IsEnvironment("Testing"))
+    {
+        builder.Services.AddDbContext<UcbPortalContext>(options =>
+            options.UseInMemoryDatabase("InMemoryDbForTesting"));
+    }
+    else
+    {
+        builder.Services.AddDbContext<UcbPortalContext>(options =>
+            options.UseNpgsql(connectionString));
+    }
 
     builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
     builder.Services.AddScoped<IJwtProvider, JwtProvider>();
