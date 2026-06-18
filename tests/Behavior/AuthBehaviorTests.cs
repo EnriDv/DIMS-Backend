@@ -32,10 +32,11 @@ public class AuthBehaviorTests : IClassFixture<BehaviorTestBase>
         Assert.Equal(HttpStatusCode.OK, registerResponse.StatusCode);
 
         // 2. Login with the registered user
-        var loginCommand = new LoginCommand(
-            Email: "behavior@ucb.com",
-            Password: "SecurePassword123!"
-        );
+        var loginCommand = new LoginCommand
+        {
+            Email = "behavior@ucb.com",
+            Password = "SecurePassword123!"
+        };
 
         var loginResponse = await _client.PostAsJsonAsync("api/Auth/login", loginCommand);
         Assert.Equal(HttpStatusCode.OK, loginResponse.StatusCode);
