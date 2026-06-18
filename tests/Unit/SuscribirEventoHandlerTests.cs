@@ -25,7 +25,8 @@ public class SuscribirEventoHandlerTests
             Lugar = "Test Lugar",
             Capacidad = 10,
             Inscritos = 2,
-            Publicado = true
+            Publicado = true,
+            Lugar = "Aula Test"
         };
         context.Eventos.Add(evento);
         await context.SaveChangesAsync();
@@ -61,7 +62,8 @@ public class SuscribirEventoHandlerTests
             Lugar = "Test Lugar",
             Capacidad = 10,
             Inscritos = 2,
-            Publicado = true
+            Publicado = true,
+            Lugar = "Aula Test"
         };
         context.Eventos.Add(evento);
 
@@ -96,7 +98,8 @@ public class SuscribirEventoHandlerTests
             Lugar = "Test Lugar",
             Capacidad = 5,
             Inscritos = 5,
-            Publicado = true
+            Publicado = true,
+            Lugar = "Aula Test"
         };
         context.Eventos.Add(evento);
         await context.SaveChangesAsync();

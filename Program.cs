@@ -29,22 +29,25 @@ try
     var builder = WebApplication.CreateBuilder(args);
 
     // Configurar Serilog para logs estructurados
-    builder.Host.UseSerilog((context, services, configuration) =>
+    if (!builder.Environment.IsEnvironment("Testing"))
     {
-        configuration
-            .ReadFrom.Configuration(context.Configuration)
-            .ReadFrom.Services(services)
-            .Enrich.FromLogContext();
+        builder.Host.UseSerilog((context, services, configuration) =>
+        {
+            configuration
+                .ReadFrom.Configuration(context.Configuration)
+                .ReadFrom.Services(services)
+                .Enrich.FromLogContext();
 
-        if (context.HostingEnvironment.IsDevelopment())
-        {
-            configuration.WriteTo.Console();
-        }
-        else
-        {
-            configuration.WriteTo.Console(new CompactJsonFormatter());
-        }
-    });
+            if (context.HostingEnvironment.IsDevelopment())
+            {
+                configuration.WriteTo.Console();
+            }
+            else
+            {
+                configuration.WriteTo.Console(new CompactJsonFormatter());
+            }
+        });
+    }
 
     // Construir connection string desde variables de entorno
     var dbHost = builder.Configuration["DB_HOST"] ?? "localhost";
@@ -55,18 +58,11 @@ try
 
     var connectionString = $"Host={dbHost};Port={dbPort};Database={dbName};Username={dbUsername};Password={dbPassword}";
 
-    // Conditionally configure database provider to prevent provider conflicts in tests
-    builder.Services.AddDbContext<UcbPortalContext>(options =>
+    if (!builder.Environment.IsEnvironment("Testing"))
     {
-        if (builder.Configuration.GetValue<bool>("UseInMemoryDatabase"))
-        {
-            options.UseInMemoryDatabase("InMemoryDbForTesting");
-        }
-        else
-        {
-            options.UseNpgsql(connectionString);
-        }
-    });
+        builder.Services.AddDbContext<UcbPortalContext>(options =>
+            options.UseNpgsql(connectionString));
+    }
 
     builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
     builder.Services.AddScoped<IJwtProvider, JwtProvider>();
@@ -79,7 +75,10 @@ try
     builder.Services.AddHostedService<S3BackgroundService>();
 
     // Registrar Manejador Global de Excepciones y Health Checks
-    builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+    if (!builder.Environment.IsEnvironment("Testing"))
+    {
+        builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+    }
     builder.Services.AddProblemDetails();
     builder.Services.AddHealthChecks();
 
@@ -135,10 +134,11 @@ try
     var app = builder.Build();
 
     // Usar ExceptionHandler al inicio del pipeline
-    app.UseExceptionHandler();
-
-    // Registrar Request Logging de Serilog para capturar automáticamente requests completados con metadata (status, latency, etc.)
-    app.UseSerilogRequestLogging();
+    if (!app.Environment.IsEnvironment("Testing"))
+    {
+        app.UseExceptionHandler();
+        app.UseSerilogRequestLogging();
+    }
 
     if (app.Environment.IsDevelopment())
     {

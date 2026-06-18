@@ -53,8 +53,14 @@ public class FakeS3Proxy : DispatchProxy
 
 public class BehaviorTestBase : WebApplicationFactory<Program>
 {
+    public BehaviorTestBase()
+    {
+        Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Testing");
+    }
+
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
+        builder.UseEnvironment("Testing");
         builder.ConfigureServices(services =>
         {
             // Replace IAmazonS3 service to avoid credential resolution crashes
