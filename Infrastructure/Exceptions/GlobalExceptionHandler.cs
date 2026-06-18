@@ -1,5 +1,10 @@
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 public class GlobalExceptionHandler : IExceptionHandler
 {
@@ -15,6 +20,9 @@ public class GlobalExceptionHandler : IExceptionHandler
         Exception exception,
         CancellationToken cancellationToken)
     {
+        // Print to Console.Error so it shows up in xUnit test run failures output
+        Console.Error.WriteLine($"[TESTING DEBUG] Exception caught in GlobalExceptionHandler: {exception}");
+
         // 1. Loguear el error real para ti (el desarrollador)
         _logger.LogError(exception, "Ocurrió un error no manejado: {Message}", exception.Message);
 

@@ -1,5 +1,7 @@
-// DIMS_Backend/Features/Eventos/CreateEvento/CreateEventoCommand.cs
+namespace DIMS_Backend.Features.Eventos.CrearEvento;
+
 using MediatR;
+using System;
 
 namespace DIMS_Backend.Features.Eventos.CrearEvento;
 
@@ -13,4 +15,4 @@ public record CreateEventoCommand(
     int Capacidad,
     string? ImagenUrl,
     Guid? CreatedBy = null
-) : IRequest<int>; // Retornamos el ID del nuevo evento
+) : IRequest<int>;
