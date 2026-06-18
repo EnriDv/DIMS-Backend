@@ -7,6 +7,8 @@ using System.Security.Claims;
 using DIMS_Backend.Features.Eventos.GetEventos;
 using DIMS_Backend.Features.Eventos.SuscribirEvento;
 using DIMS_Backend.Features.Eventos.GetEventoById;
+using DIMS_Backend.Features.Eventos.GetEventosSuscritos;
+using DIMS_Backend.Features.Eventos.CrearEvento;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -25,6 +27,22 @@ public class EventosController : ControllerBase
     [Authorize(Roles = "admin,docente")]
     public async Task<IActionResult> GetAllAdmin([FromQuery] int? carreraId)
         => Ok(await _mediator.Send(new GetEventosQuery(carreraId, IncludeUnpublished: true, SoloProximos: false)));
+
+    [HttpGet("suscritos")]
+    [Authorize]
+    public async Task<IActionResult> GetSuscritos()
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                          ?? User.FindFirst("sub")?.Value;
+
+        if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out Guid userId))
+        {
+            return Unauthorized(new { message = "ID de usuario no válido en el token" });
+        }
+
+        var result = await _mediator.Send(new GetEventosSuscritosQuery(userId));
+        return Ok(result);
+    }
 
     [HttpGet("{id}")]
     [AllowAnonymous]
