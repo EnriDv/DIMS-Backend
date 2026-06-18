@@ -1,6 +1,8 @@
 // DIMS_Backend/Features/Eventos/CreateEvento/CreateEventoCommand.cs
 using MediatR;
 
+namespace DIMS_Backend.Features.Eventos.CrearEvento;
+
 public record CreateEventoCommand(
     string Titulo,
     string Descripcion,

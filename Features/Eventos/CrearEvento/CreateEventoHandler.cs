@@ -2,6 +2,8 @@
 using MediatR;
 using DIMS_Backend.Models; // Tu clase Evento
 
+namespace DIMS_Backend.Features.Eventos.CrearEvento;
+
 public class CreateEventoHandler : IRequestHandler<CreateEventoCommand, int>
 {
     private static readonly HashSet<string> TiposPermitidos = new(StringComparer.OrdinalIgnoreCase)
