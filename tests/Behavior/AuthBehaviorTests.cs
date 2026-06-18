@@ -29,7 +29,11 @@ public class AuthBehaviorTests : IClassFixture<BehaviorTestBase>
         );
 
         var registerResponse = await _client.PostAsJsonAsync("api/Auth/register", registerCommand);
-        Assert.Equal(HttpStatusCode.OK, registerResponse.StatusCode);
+        if (registerResponse.StatusCode != HttpStatusCode.OK)
+        {
+            var content = await registerResponse.Content.ReadAsStringAsync();
+            Assert.Fail($"Register failed: {registerResponse.StatusCode} - {content}");
+        }
 
         // 2. Login with the registered user
         var loginCommand = new LoginCommand
@@ -39,7 +43,11 @@ public class AuthBehaviorTests : IClassFixture<BehaviorTestBase>
         };
 
         var loginResponse = await _client.PostAsJsonAsync("api/Auth/login", loginCommand);
-        Assert.Equal(HttpStatusCode.OK, loginResponse.StatusCode);
+        if (loginResponse.StatusCode != HttpStatusCode.OK)
+        {
+            var content = await loginResponse.Content.ReadAsStringAsync();
+            Assert.Fail($"Login failed: {loginResponse.StatusCode} - {content}");
+        }
 
         var loginResult = await loginResponse.Content.ReadFromJsonAsync<AuthResultDto>();
         Assert.NotNull(loginResult);

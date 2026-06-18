@@ -1,6 +1,11 @@
-// DIMS_Backend/Features/Eventos/CreateEvento/CreateEventoHandler.cs
+namespace DIMS_Backend.Features.Eventos.CrearEvento;
+
 using MediatR;
-using DIMS_Backend.Models; // Tu clase Evento
+using DIMS_Backend.Models;
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace DIMS_Backend.Features.Eventos.CrearEvento;
 
@@ -45,7 +50,7 @@ public class CreateEventoHandler : IRequestHandler<CreateEventoCommand, int>
             CarreraId = request.CarreraId,
             Capacidad = request.Capacidad > 0 ? request.Capacidad : null,
             ImagenUrl = request.ImagenUrl,
-            Inscritos = 0, // Empezamos en cero
+            Inscritos = 0,
             Publicado = true,
             CreatedBy = request.CreatedBy,
         };
