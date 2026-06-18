@@ -12,6 +12,11 @@ namespace DIMS_Backend.Tests.Behavior;
 
 public class BehaviorTestBase : WebApplicationFactory<Program>
 {
+    public BehaviorTestBase()
+    {
+        Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Testing");
+    }
+
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("Testing");
