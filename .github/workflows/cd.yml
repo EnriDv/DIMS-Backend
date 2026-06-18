@@ -43,6 +43,11 @@ jobs:
     needs: build-and-push
     runs-on: ubuntu-latest
     steps:
+      - name: Set lowercase owner name
+        run: echo "OWNER_LC=${OWNER,,}" >> $GITHUB_ENV
+        env:
+          OWNER: ${{ github.repository_owner }}
+
       - name: Execute Remote SSH Commands
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -51,9 +56,8 @@ jobs:
           key: ${{ secrets.AWS_SSH_PRIVATE_KEY }}
           script: |
             cd /home/ubuntu/apps/
-            # Autenticar Docker en GHCR desde la EC2 usando un Personal Access Token (PAT)
-            echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-            # Descargar la nueva versión y reiniciar solo el backend de forma limpia
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            export REPO_OWNER=${{ env.OWNER_LC }}
             docker compose -f docker-compose.prod.yml pull backend
             docker compose -f docker-compose.prod.yml up -d backend
             docker image prune -f
