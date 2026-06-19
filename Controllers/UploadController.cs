@@ -22,7 +22,10 @@ public class UploadController : ControllerBase
     {
         _s3Client = s3Client;
         _logger = logger;
-        _bucketName = configuration["AWS_BUCKET_NAME"] ?? configuration["AUDIT_BUCKET_NAME"] ?? "dims-assets-bucket";
+        _bucketName = configuration["S3_BUCKET_NAME"]
+            ?? configuration["AWS_BUCKET_NAME"]
+            ?? configuration["AUDIT_BUCKET_NAME"]
+            ?? "dims-assets-bucket";
     }
 
     [HttpPost]

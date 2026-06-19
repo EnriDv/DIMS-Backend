@@ -4,7 +4,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -26,7 +25,10 @@ public class S3BackgroundService : BackgroundService
         _queue = queue;
         _s3Client = s3Client;
         _logger = logger;
-        _bucketName = configuration["AWS_BUCKET_NAME"] ?? configuration["AUDIT_BUCKET_NAME"] ?? "dims-assets-bucket";
+        _bucketName = configuration["S3_BUCKET_NAME"]
+            ?? configuration["AWS_BUCKET_NAME"]
+            ?? configuration["AUDIT_BUCKET_NAME"]
+            ?? "dims-assets-bucket";
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
