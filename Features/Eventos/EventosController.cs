@@ -8,6 +8,7 @@ using DIMS_Backend.Features.Eventos.GetEventos;
 using DIMS_Backend.Features.Eventos.SuscribirEvento;
 using DIMS_Backend.Features.Eventos.GetEventoById;
 using DIMS_Backend.Features.Eventos.GetEventosSuscritos;
+using DIMS_Backend.Features.Eventos.CrearEvento;
 
 [ApiController]
 [Route("api/[controller]")]

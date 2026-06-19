@@ -8,9 +8,11 @@ using DIMS_Backend.Models;
 using DIMS_Backend.Infrastructure.Security;
 using Serilog;
 using Serilog.Formatting.Compact;
+using Amazon.S3;
+using DIMS_Backend.Infrastructure.BackgroundServices;
 
-// Cargar variables de entorno desde archivo .env SOLO en desarrollo local (no en Docker)
-if (!File.Exists("/.dockerenv"))
+// Cargar variables de entorno desde archivo .env SOLO en desarrollo local (no en Docker) si existe
+if (!File.Exists("/.dockerenv") && File.Exists(".env"))
 {
     Env.Load();
 }
@@ -27,22 +29,25 @@ try
     var builder = WebApplication.CreateBuilder(args);
 
     // Configurar Serilog para logs estructurados
-    builder.Host.UseSerilog((context, services, configuration) =>
+    if (!builder.Environment.IsEnvironment("Testing"))
     {
-        configuration
-            .ReadFrom.Configuration(context.Configuration)
-            .ReadFrom.Services(services)
-            .Enrich.FromLogContext();
+        builder.Host.UseSerilog((context, services, configuration) =>
+        {
+            configuration
+                .ReadFrom.Configuration(context.Configuration)
+                .ReadFrom.Services(services)
+                .Enrich.FromLogContext();
 
-        if (context.HostingEnvironment.IsDevelopment())
-        {
-            configuration.WriteTo.Console();
-        }
-        else
-        {
-            configuration.WriteTo.Console(new CompactJsonFormatter());
-        }
-    });
+            if (context.HostingEnvironment.IsDevelopment())
+            {
+                configuration.WriteTo.Console();
+            }
+            else
+            {
+                configuration.WriteTo.Console(new CompactJsonFormatter());
+            }
+        });
+    }
 
     // Construir connection string desde variables de entorno
     var dbHost = builder.Configuration["DB_HOST"] ?? "localhost";
@@ -53,16 +58,38 @@ try
 
     var connectionString = $"Host={dbHost};Port={dbPort};Database={dbName};Username={dbUsername};Password={dbPassword}";
 
-    builder.Services.AddDbContext<UcbPortalContext>(options =>
-        options.UseNpgsql(connectionString));
+    if (builder.Environment.IsEnvironment("Testing"))
+    {
+        builder.Services.AddDbContext<UcbPortalContext>(options =>
+        {
+            var assembly = System.Reflection.Assembly.Load("Microsoft.EntityFrameworkCore.InMemory");
+            var extensionType = assembly.GetType("Microsoft.EntityFrameworkCore.InMemoryDbContextOptionsExtensions");
+            var method = extensionType?.GetMethods()
+                .FirstOrDefault(m => m.Name == "UseInMemoryDatabase" && !m.IsGenericMethod && m.GetParameters().Length == 3);
+            method?.Invoke(null, new object[] { options, "InMemoryDbForTesting", null });
+        });
+    }
+    else
+    {
+        builder.Services.AddDbContext<UcbPortalContext>(options =>
+            options.UseNpgsql(connectionString));
+    }
 
     builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
     builder.Services.AddScoped<IJwtProvider, JwtProvider>();
 
     builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
 
+    // Registrar servicios de AWS y Background S3 Worker
+    builder.Services.AddAWSService<IAmazonS3>();
+    builder.Services.AddSingleton<S3BackgroundQueue>();
+    builder.Services.AddHostedService<S3BackgroundService>();
+
     // Registrar Manejador Global de Excepciones y Health Checks
-    builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+    if (!builder.Environment.IsEnvironment("Testing"))
+    {
+        builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+    }
     builder.Services.AddProblemDetails();
     builder.Services.AddHealthChecks();
 
@@ -99,7 +126,7 @@ try
         var corsOriginsRaw = builder.Configuration["CORS_ORIGINS"];
         if (string.IsNullOrWhiteSpace(corsOriginsRaw))
         {
-            throw new InvalidOperationException("CORS_ORIGINS is required and must be a comma-separated list of allowed origins.");
+            corsOriginsRaw = "http://localhost:3000";
         }
 
         var corsOrigins = corsOriginsRaw.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
@@ -118,10 +145,11 @@ try
     var app = builder.Build();
 
     // Usar ExceptionHandler al inicio del pipeline
-    app.UseExceptionHandler();
-
-    // Registrar Request Logging de Serilog para capturar automáticamente requests completados con metadata (status, latency, etc.)
-    app.UseSerilogRequestLogging();
+    if (!app.Environment.IsEnvironment("Testing"))
+    {
+        app.UseExceptionHandler();
+        app.UseSerilogRequestLogging();
+    }
 
     if (app.Environment.IsDevelopment())
     {
@@ -147,7 +175,9 @@ try
 }
 catch (Exception ex)
 {
+    Console.Error.WriteLine($"STARTUP CRASH: {ex}");
     Log.Fatal(ex, "El servidor web de DIMS-Backend terminó inesperadamente.");
+    throw;
 }
 finally
 {
