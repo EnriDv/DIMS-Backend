@@ -1,231 +1,210 @@
-***
+# DIMS
 
-# 🚀 API Documentation - DIMS Backend (Portal de Ingenierías UCB)
+Monorepo del proyecto DIMS con tres piezas:
 
-Esta API está construida con **.NET 10** usando arquitectura **CQRS (MediatR)** y **PostgreSQL**. La mayoría de las rutas de mutación (POST, PUT, DELETE) requieren autenticación mediante **JWT** (Token Bearer).
+- [DIMS-Backend](/mnt/c/Users/dikyd/Documents/PROYECTOS/DIMS-Backend): API REST en .NET 10 con PostgreSQL.
+- [DIMS_Astro](/mnt/c/Users/dikyd/Documents/PROYECTOS/DIMS_Astro): frontend en Astro 5 + React 19.
+- [serverless](/mnt/c/Users/dikyd/Documents/PROYECTOS/serverless): funciones AWS para compresión de imágenes y notificación por suscripción.
 
----
+Este README está orientado a ejecución: dependencias, variables, arranque local, Docker y AWS.
 
-## 🔐 1. Módulo de Autenticación (`/api/Auth`)
+**Arquitectura**
 
-### `POST /api/Auth/login`
-* [cite_start]**Descripción:** Inicia sesión y genera un token JWT para acceder a rutas protegidas[cite: 3, 4].
-* **Recibe (Body):**
-    ```json
-    {
-      "email": "usuario@ucb.edu.bo",
-      "password": "MiPassword123"
-    }
-    ```
-* **Devuelve (200 OK):**
-    ```json
-    {
-      "token": "eyJhbGciOiJIUzI1NiIsInR5c...",
-      "userId": "uuid-del-usuario",
-      "nombre": "Enrique Diaz",
-      "rol": "admin"
-    }
-    ```
+```text
+Astro frontend -> .NET backend -> PostgreSQL
+                           -> S3 (uploads y payloads de suscripción)
+S3 ObjectCreated -> Lambdas serverless -> SES / SNS
+```
 
-### `POST /api/Auth/seed-admin`
-* [cite_start]**Descripción:** Crea un usuario administrador inicial en el sistema[cite: 4].
-* **Recibe (Body):**
-    ```json
-    {
-      "nombre": "Admin Principal",
-      "email": "admin@ucb.edu.bo",
-      "password": "Password123!",
-      "rol": "admin"
-    }
-    ```
-* **Devuelve (200 OK):** Mensaje de confirmación o el ID del usuario creado.
+**Dependencias**
 
----
+Para ejecutar el repo completo necesitas:
 
-## 🎓 2. Módulo de Carreras (`/api/Carreras`)
+- `Docker` y `Docker Compose` para el arranque más simple del stack principal.
+- `Node.js 20.x` y `npm` para frontend y Lambdas.
+- `.NET SDK 10.0` para backend y tests fuera de Docker.
+- `PostgreSQL 17` solo si no usarás Docker para la base de datos.
+- Cuenta AWS con acceso a `S3`, `Lambda`, `SES`, `SNS` si quieres habilitar el flujo completo de archivos e emails.
+- `zip` o equivalente para empaquetar Lambdas manualmente.
 
-### `GET /api/Carreras`
-* [cite_start]**Descripción:** Obtiene la lista de todas las carreras activas[cite: 3].
-* **Recibe:** Nada.
-* **Devuelve (200 OK):** Un arreglo de objetos `CarreraListDto` (id, nombre, slug, modalidad, duracion, icono, color).
+**Versiones detectadas en el repo**
 
-### `GET /api/Carreras/{id}`
-* [cite_start]**Descripción:** Obtiene los detalles completos de una carrera específica[cite: 3].
-* **Recibe (Path):** `id` (entero).
-* **Devuelve (200 OK):** Objeto `CarreraDetailDto` que incluye la lista de "Perfil de Egresado" y "Campo Laboral".
+- Backend: `net10.0` en [DIMS-Backend.csproj](/mnt/c/Users/dikyd/Documents/PROYECTOS/DIMS-Backend/DIMS-Backend.csproj).
+- Frontend Docker: `node:20-alpine` en [dockerfile](/mnt/c/Users/dikyd/Documents/PROYECTOS/DIMS_Astro/dockerfile).
+- Base de datos en Docker: `postgres:17-alpine` en [docker-compose.yml](/mnt/c/Users/dikyd/Documents/PROYECTOS/docker-compose.yml).
+- Lambda `dims-subscription-notifier`: `Node.js 20.x` y dependencias `@aws-sdk/client-s3`, `@aws-sdk/client-sesv2`, `@aws-sdk/client-sns` en [package.json](/mnt/c/Users/dikyd/Documents/PROYECTOS/serverless/dims-subscription-notifier/package.json).
 
-### `GET /api/Carreras/{id}/malla`
-* [cite_start]**Descripción:** Obtiene la malla curricular de una carrera, ordenada por semestre[cite: 3].
-* **Recibe (Path):** `id` (entero).
-* **Devuelve (200 OK):** Un arreglo de objetos `MateriaMallaDto`.
+**Variables de entorno**
 
-### `POST /api/Carreras`
-* [cite_start]**Descripción:** Crea una nueva carrera (Requiere rol `admin`)[cite: 3].
-* **Recibe (Body):**
-    ```json
-    {
-      "nombre": "Ingeniería de Software",
-      "slug": "ingenieria-software",
-      "descripcion": "Descripción de la carrera...",
-      "duracion": "8 Semestres",
-      "modalidad": "Presencial",
-      "color": "#3B82F6",
-      "icono": "💻"
-    }
-    ```
-* **Devuelve (201 Created):** El `id` de la carrera recién creada.
+Copia [.env.example](/mnt/c/Users/dikyd/Documents/PROYECTOS/.env.example) a `.env` en la raíz y completa al menos estas variables:
 
-### `PUT /api/Carreras/{id}`
-* [cite_start]**Descripción:** Actualiza los datos principales de una carrera (Requiere rol `admin`)[cite: 3].
-* [cite_start]**Recibe (Path & Body):** `id` en la URL y el siguiente JSON[cite: 3]:
-    ```json
-    {
-      "id": 1,
-      "nombre": "Nuevo Nombre",
-      "descripcion": "Nueva descripción",
-      "activa": true
-    }
-    ```
-* **Devuelve (204 No Content):** Vacío si fue exitoso.
+```env
+DB_HOST=postgres
+DB_PORT=5432
+DB_NAME=DIMS
+DB_USERNAME=postgres
+DB_PASSWORD=your_secure_password_here
 
-### `DELETE /api/Carreras/{id}`
-* [cite_start]**Descripción:** Realiza un borrado lógico de una carrera (Requiere rol `admin`)[cite: 3].
-* [cite_start]**Recibe (Path):** `id` (entero)[cite: 3].
-* **Devuelve (204 No Content):** Vacío si fue exitoso.
+JWT_SECRET_KEY=replace_with_a_long_random_secret
+JWT_ISSUER=DIMS_Backend
+JWT_AUDIENCE=DIMS_Frontend
 
----
+CORS_ORIGINS=http://localhost:3000,http://127.0.0.1:3000,http://localhost:4321
 
-## 📚 3. Módulo de Materias (`/api/Materias`)
+ASPNETCORE_ENVIRONMENT=Production
 
-### `GET /api/Materias/{id}`
-* [cite_start]**Descripción:** Obtiene el detalle de una materia, incluyendo docentes que la imparten y paralelos disponibles[cite: 2].
-* [cite_start]**Recibe (Path):** `id` (entero)[cite: 2].
-* **Devuelve (200 OK):** Objeto `MateriaDetailDto` con arrays de `Docentes` y `Paralelos`.
+PUBLIC_API_URL=http://localhost:8000/api
+PUBLIC_APP_NAME=DIMS Portal
+```
 
-### `POST /api/Materias`
-* [cite_start]**Descripción:** Crea una nueva materia y la asigna a una carrera (Requiere rol `admin`)[cite: 2, 3].
-* **Recibe (Body):**
-    ```json
-    {
-      "sigla": "SIS-101",
-      "nombre": "Introducción a la Programación",
-      "creditos": 5,
-      "carreraId": 1,
-      "semestre": 1,
-      "tipo": "obligatoria",
-      "area": "Ciencias Exactas"
-    }
-    ```
-* **Devuelve (200 OK):** El `id` de la materia creada.
+Variables opcionales o necesarias solo para AWS:
 
-### `DELETE /api/Materias/{id}`
-* [cite_start]**Descripción:** Realiza un borrado lógico de una materia (Requiere rol `admin`)[cite: 2].
-* [cite_start]**Recibe (Path):** `id` (entero)[cite: 2].
-* **Devuelve (204 No Content):** Vacío si fue exitoso.
+```env
+AWS_ACCESS_KEY_ID=
+AWS_SECRET_ACCESS_KEY=
+AWS_SESSION_TOKEN=
+AWS_REGION=us-east-1
+S3_BUCKET_NAME=
+AWS_BUCKET_NAME=
+```
 
----
+Notas importantes:
 
-## 👤 4. Módulo de Personas (`/api/Personas`)
+- El backend lee `.env` automáticamente en local cuando se ejecuta fuera de Docker desde la raíz o con esas variables exportadas.
+- El frontend falla al iniciar si falta `PUBLIC_API_URL`; en SSR con Docker también usa `INTERNAL_API_URL`.
+- El backend puede iniciar sin credenciales AWS, pero las rutas o procesos que suben a S3 fallarán si `S3_BUCKET_NAME` o las credenciales no están configuradas.
 
-### `GET /api/Personas`
-* [cite_start]**Descripción:** Lista el staff docente y administrativo[cite: 1].
-* **Recibe (Query Opcional):** `?carreraId=X` para filtrar.
-* **Devuelve (200 OK):** Arreglo de `PersonaListDto`.
+**Ejecución recomendada con Docker**
 
-### `GET /api/Personas/{id}`
-* [cite_start]**Descripción:** Perfil detallado de un docente/director, extrayendo dinámicamente sus áreas de especialidad[cite: 2].
-* [cite_start]**Recibe (Path):** `id` (entero)[cite: 2].
-* **Devuelve (200 OK):** Objeto `PersonaDetailDto` con array de `Materias` y `Areas`.
+1. Crea `.env` en la raíz a partir de [.env.example](/mnt/c/Users/dikyd/Documents/PROYECTOS/.env.example).
+2. Ajusta como mínimo `DB_PASSWORD`, `JWT_SECRET_KEY` y `PUBLIC_API_URL=http://localhost:8000/api`.
+3. Levanta el stack:
 
-### `POST /api/Personas`
-* [cite_start]**Descripción:** Registra un nuevo miembro del staff (Requiere rol `admin`)[cite: 1, 2].
-* **Recibe (Body):**
-    ```json
-    {
-      "nombre": "Juan Perez",
-      "email": "juan@ucb.edu.bo",
-      "rol": "docente",
-      "carreraId": 1,
-      "especialidad": "Inteligencia Artificial",
-      "gradoAcademico": "PhD"
-    }
-    ```
-* **Devuelve (200 OK):** El `id` de la persona creada.
+```bash
+docker compose up --build
+```
 
----
+Servicios expuestos:
 
-## 📰 5. Módulo de Noticias (`/api/Noticias`)
+- Frontend: `http://localhost:3000`
+- Backend API: `http://localhost:8000`
+- Scalar/OpenAPI: `http://localhost:8000/scalar/v1`
+- Health check: `http://localhost:8000/health`
+- PostgreSQL host: `localhost:5433` si mantienes el mapeo por defecto del compose
 
-### `GET /api/Noticias`
-* [cite_start]**Descripción:** Obtiene el feed de noticias publicadas[cite: 2].
-* **Recibe (Query Opcional):** `?carreraId=X` para filtrar.
-* **Devuelve (200 OK):** Arreglo de `NoticiaDto`.
+Qué levanta [docker-compose.yml](/mnt/c/Users/dikyd/Documents/PROYECTOS/docker-compose.yml):
 
-### `POST /api/Noticias`
-* [cite_start]**Descripción:** Crea una noticia (Requiere rol `admin` o `docente`)[cite: 2].
-* **Recibe (Body):**
-    ```json
-    {
-      "titulo": "Nueva Noticia",
-      "contenido": "<p>Contenido en HTML</p>",
-      "imagenUrl": "https://link.com/img.jpg",
-      "carreraId": null,
-      "destacada": true
-    }
-    ```
-* **Devuelve (200 OK / 201 Created):** El `id` de la noticia.
+- `postgres`
+- `backend`
+- `frontend`
 
-### `DELETE /api/Noticias/{id}`
-* **Descripción:** Borrado lógico de una noticia. [cite_start]El backend verifica mediante el JWT si el usuario es el creador de la noticia o un admin[cite: 2].
-* [cite_start]**Recibe (Path):** `id` (entero)[cite: 2].
-* **Devuelve (204 No Content):** Vacío si fue exitoso.
+Para un despliegue más cercano a producción existe [docker-compose.prod.yml](/mnt/c/Users/dikyd/Documents/PROYECTOS/docker-compose.prod.yml), que además agrega `nginx` y espera imágenes publicadas en GHCR.
 
----
+**Ejecución sin Docker**
 
-## 📅 6. Módulo de Eventos (`/api/Eventos`)
+Base de datos:
 
-### `GET /api/Eventos`
-* [cite_start]**Descripción:** Lista los eventos próximos[cite: 3].
-* **Recibe:** Nada.
-* **Devuelve (200 OK):** Arreglo de `EventoListDto`.
+1. Levanta PostgreSQL localmente.
+2. Crea la base `DIMS`.
+3. Ajusta `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USERNAME`, `DB_PASSWORD`.
 
-### `POST /api/Eventos/{id}/suscribir`
-* **Descripción:** Inscribe al usuario autenticado en un evento. [cite_start]Extrae el ID del estudiante directamente del Token JWT enviado en los headers[cite: 3].
-* [cite_start]**Recibe (Path & Headers):** `id` del evento [cite: 3] y Header `Authorization: Bearer <token>`.
-* **Devuelve (200 OK):** Mensaje de confirmación (Falla si no hay cupos).
+Backend:
 
----
+```bash
+dotnet restore /mnt/c/Users/dikyd/Documents/PROYECTOS/DIMS-Backend/DIMS-Backend.csproj
+dotnet run --project /mnt/c/Users/dikyd/Documents/PROYECTOS/DIMS-Backend/DIMS-Backend.csproj
+```
 
-## 📝 7. Módulo de Publicaciones (`/api/Publicaciones`)
+Frontend:
 
-### `GET /api/Publicaciones`
-* [cite_start]**Descripción:** Repositorio de proyectos de grado, tesis y artículos[cite: 1].
-* **Recibe (Query Opcional):** `?carreraId=X` y `?tipo=Y` (ej: tesis, proyecto).
-* **Devuelve (200 OK):** Arreglo de `PublicacionDto`.
+```bash
+cd /mnt/c/Users/dikyd/Documents/PROYECTOS/DIMS_Astro
+npm install
+PUBLIC_API_URL=http://localhost:8000/api npm run dev
+```
 
-### `POST /api/Publicaciones`
-* [cite_start]**Descripción:** Registra una nueva publicación académica (Requiere rol `admin` o `docente`)[cite: 1].
-* **Recibe (Body):**
-    ```json
-    {
-      "titulo": "Título de la Tesis",
-      "autor": "Nombre Estudiante",
-      "resumen": "Abstract...",
-      "archivoUrl": "https://link-al-pdf.com",
-      "carreraId": 1,
-      "tipo": "tesis"
-    }
-    ```
-* **Devuelve (200 OK):** El `id` de la publicación creada.
+El frontend en desarrollo usa Astro y normalmente queda disponible en `http://localhost:4321`.
 
-### `PUT /api/Publicaciones/{id}`
-* **Descripción:** Edita una publicación. [cite_start]El backend inyecta y valida internamente los campos `requestUserId` y `requestUserRole` usando los claims del JWT para asegurar que solo el dueño o un admin puedan editar[cite: 1].
-* [cite_start]**Recibe (Path & Body):** `id` en la URL y los campos a actualizar en el JSON[cite: 1]. *(Nota: No envíes `requestUserId` ni `requestUserRole` desde el frontend, el backend los lee de tu token de sesión)*.
-* **Devuelve (204 No Content):** Vacío si fue exitoso.
+**Tests**
 
-### `DELETE /api/Publicaciones/{id}`
-* [cite_start]**Descripción:** Realiza un borrado lógico de la publicación (Requiere ser el dueño o Admin)[cite: 1].
-* [cite_start]**Recibe (Path):** `id` (entero)[cite: 1].
-* **Devuelve (204 No Content):** Vacío si fue exitoso.
+Backend:
 
-***
+```bash
+dotnet test /mnt/c/Users/dikyd/Documents/PROYECTOS/DIMS-Backend/tests/DIMS-Backend.Tests.csproj
+dotnet test /mnt/c/Users/dikyd/Documents/PROYECTOS/DIMS-Backend/tests/DIMS-Backend.Tests.csproj --filter "FullyQualifiedName~DIMS_Backend.Tests.Unit"
+dotnet test /mnt/c/Users/dikyd/Documents/PROYECTOS/DIMS-Backend/tests/DIMS-Backend.Tests.csproj --filter "FullyQualifiedName~DIMS_Backend.Tests.Behavior"
+```
+
+Frontend:
+
+```bash
+cd /mnt/c/Users/dikyd/Documents/PROYECTOS/DIMS_Astro
+npm install
+npm run test:unit
+npm run test:behavior
+npm run test:ci
+```
+
+Comandos útiles del frontend:
+
+```bash
+cd /mnt/c/Users/dikyd/Documents/PROYECTOS/DIMS_Astro
+npm run validate
+npm run build
+```
+
+**AWS y flujo completo**
+
+Si quieres que el repo completo funcione con uploads, procesamiento en S3 y emails, además del stack principal debes configurar AWS.
+
+Backend:
+
+- Usa `S3_BUCKET_NAME` para subir archivos e insertar payloads de suscripción en S3.
+- Requiere credenciales con permisos de escritura al bucket.
+
+Serverless:
+
+- [serverless/dims-image-compressor](/mnt/c/Users/dikyd/Documents/PROYECTOS/serverless/dims-image-compressor) procesa imágenes subidas a S3.
+- [serverless/dims-subscription-notifier](/mnt/c/Users/dikyd/Documents/PROYECTOS/serverless/dims-subscription-notifier) lee JSONs bajo `subscriptions/` y envía correos por SES.
+
+Para `dims-subscription-notifier` necesitas:
+
+- Runtime `Node.js 20.x`
+- `Handler`: `index.handler`
+- Variables:
+  - `AWS_REGION=us-east-1`
+  - `SES_FROM_EMAIL=<correo verificado en SES>`
+  - `SES_REPLY_TO=<opcional>`
+  - `SNS_TOPIC_ARN=<opcional>`
+- Permisos IAM:
+  - `s3:GetObject`
+  - `ses:SendEmail`
+  - `logs:CreateLogGroup`
+  - `logs:CreateLogStream`
+  - `logs:PutLogEvents`
+- Trigger S3:
+  - Event type `ObjectCreated`
+  - Prefix `subscriptions/`
+
+Empaquetado manual de `dims-subscription-notifier`:
+
+```bash
+cd /mnt/c/Users/dikyd/Documents/PROYECTOS/serverless/dims-subscription-notifier
+npm install
+zip -r function.zip index.js package.json node_modules
+```
+
+Luego sube `function.zip` a la Lambda.
+
+Limitación de SES:
+
+- Si la cuenta está en sandbox, solo podrás enviar a destinatarios verificados.
+
+Más detalle de la parte serverless en [serverless/README.md](/mnt/c/Users/dikyd/Documents/PROYECTOS/serverless/README.md).
+
+**Problemas comunes**
+
+- `Missing API URL`: falta `PUBLIC_API_URL` o `INTERNAL_API_URL` en SSR.
+- Error de conexión a Postgres: revisa `DB_HOST`, `DB_PORT` y que el contenedor `postgres` esté sano.
+- Uploads o suscripciones no llegan a AWS: faltan credenciales, bucket o permisos IAM.
+- La Lambda existe pero no hace nada: normalmente falta el trigger S3, variables de entorno o subiste el código sin `node_modules`.
