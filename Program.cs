@@ -9,7 +9,8 @@ using DIMS_Backend.Infrastructure.Security;
 using Serilog;
 using Serilog.Formatting.Compact;
 using Amazon.S3;
-using DIMS_Backend.Infrastructure.BackgroundServices;
+using Amazon.SQS;
+using DIMS_Backend.Infrastructure.Messaging;
 
 // Cargar variables de entorno desde archivo .env SOLO en desarrollo local (no en Docker) si existe
 if (!File.Exists("/.dockerenv") && File.Exists(".env"))
@@ -80,10 +81,10 @@ try
 
     builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
 
-    // Registrar servicios de AWS y Background S3 Worker
+    // Registrar servicios de AWS
     builder.Services.AddAWSService<IAmazonS3>();
-    builder.Services.AddSingleton<S3BackgroundQueue>();
-    builder.Services.AddHostedService<S3BackgroundService>();
+    builder.Services.AddAWSService<IAmazonSQS>();
+    builder.Services.AddScoped<ISqsService, SqsService>();
 
     // Registrar Manejador Global de Excepciones y Health Checks
     if (!builder.Environment.IsEnvironment("Testing"))

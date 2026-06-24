@@ -13,6 +13,7 @@
   <ItemGroup>
     <PackageReference Include="AWSSDK.Extensions.NETCore.Setup" Version="4.0.4.9" />
     <PackageReference Include="AWSSDK.S3" Version="4.0.25" />
+    <PackageReference Include="AWSSDK.SQS" Version="4.0.3.8" />
     <PackageReference Include="BCrypt.Net-Next" Version="4.1.0" />
     <PackageReference Include="FluentValidation" Version="12.1.1" />
     <PackageReference Include="FluentValidation.AspNetCore" Version="11.3.1" />

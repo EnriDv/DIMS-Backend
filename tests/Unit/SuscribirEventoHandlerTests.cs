@@ -4,12 +4,22 @@ using Xunit;
 using Microsoft.EntityFrameworkCore;
 using DIMS_Backend.Models;
 using DIMS_Backend.Features.Eventos.SuscribirEvento;
-using DIMS_Backend.Infrastructure.BackgroundServices;
+using DIMS_Backend.Infrastructure.Messaging;
 
 namespace DIMS_Backend.Tests.Unit;
 
+// Stub mínimo para ISqsService — no hace nada, solo cumple el contrato
+file sealed class NoopSqsService : ISqsService
+{
+    public Task SendMessageAsync(string messageBody, System.Threading.CancellationToken cancellationToken = default)
+        => Task.CompletedTask;
+}
+
 public class SuscribirEventoHandlerTests
 {
+    private static SuscribirEventoHandler BuildHandler(UcbPortalContext context)
+        => new(context, new NoopSqsService());
+
     [Fact]
     public async Task Handle_Subscribes_Successfully_When_Spots_Available()
     {
@@ -25,12 +35,12 @@ public class SuscribirEventoHandlerTests
             Lugar = "Test Lugar",
             Capacidad = 10,
             Inscritos = 2,
-            Publicado = true
+            Publicado = true,
         };
         context.Eventos.Add(evento);
         await context.SaveChangesAsync();
 
-        var handler = new SuscribirEventoHandler(context, new S3BackgroundQueue());
+        var handler = BuildHandler(context);
         var userId = Guid.NewGuid();
         var command = new SuscribirEventoCommand(evento.Id, userId);
 
@@ -61,7 +71,7 @@ public class SuscribirEventoHandlerTests
             Lugar = "Test Lugar",
             Capacidad = 10,
             Inscritos = 2,
-            Publicado = true
+            Publicado = true,
         };
         context.Eventos.Add(evento);
 
@@ -69,16 +79,16 @@ public class SuscribirEventoHandlerTests
         context.EventoSuscripciones.Add(new EventoSuscripcione
         {
             EventoId = evento.Id,
-            UserId = userId
+            UserId = userId,
         });
         await context.SaveChangesAsync();
 
-        var handler = new SuscribirEventoHandler(context, new S3BackgroundQueue());
+        var handler = BuildHandler(context);
         var command = new SuscribirEventoCommand(evento.Id, userId);
 
         var result = await handler.Handle(command, default);
 
-        Assert.False(result); // Prevent double subscription!
+        Assert.False(result);
     }
 
     [Fact]
@@ -96,17 +106,17 @@ public class SuscribirEventoHandlerTests
             Lugar = "Test Lugar",
             Capacidad = 5,
             Inscritos = 5,
-            Publicado = true
+            Publicado = true,
         };
         context.Eventos.Add(evento);
         await context.SaveChangesAsync();
 
-        var handler = new SuscribirEventoHandler(context, new S3BackgroundQueue());
+        var handler = BuildHandler(context);
         var userId = Guid.NewGuid();
         var command = new SuscribirEventoCommand(evento.Id, userId);
 
         var result = await handler.Handle(command, default);
 
-        Assert.False(result); // Failure because capacity is full
+        Assert.False(result);
     }
 }

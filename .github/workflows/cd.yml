@@ -73,7 +73,9 @@ jobs:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
+      AWS_REGION: ${{ secrets.AWS_REGION }}
       S3_BUCKET_NAME: ${{ secrets.S3_BUCKET_NAME }}
+      SQS_QUEUE_URL: ${{ secrets.SQS_QUEUE_URL }}
     steps:
       - name: Set lowercase owner name
         run: echo "OWNER_LC=${OWNER,,}" >> $GITHUB_ENV
@@ -86,7 +88,7 @@ jobs:
           host: ${{ secrets.AWS_EC2_HOST }}
           username: ubuntu
           key: ${{ secrets.AWS_SSH_PRIVATE_KEY }}
-          envs: OWNER_LC,DB_NAME,DB_USERNAME,DB_PASSWORD,JWT_SECRET_KEY,JWT_ISSUER,JWT_AUDIENCE,CORS_ORIGINS,PUBLIC_APP_NAME,AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY,AWS_SESSION_TOKEN,S3_BUCKET_NAME
+          envs: OWNER_LC,DB_NAME,DB_USERNAME,DB_PASSWORD,JWT_SECRET_KEY,JWT_ISSUER,JWT_AUDIENCE,CORS_ORIGINS,PUBLIC_APP_NAME,AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY,AWS_SESSION_TOKEN,AWS_REGION,S3_BUCKET_NAME,SQS_QUEUE_URL
           script: |
             cd /home/ubuntu/apps/
             cat <<EOF > .env
@@ -102,8 +104,9 @@ jobs:
             AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
             AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
             AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN}
-            AWS_REGION=us-east-1
+            AWS_REGION=${AWS_REGION}
             S3_BUCKET_NAME=${S3_BUCKET_NAME}
+            SQS_QUEUE_URL=${SQS_QUEUE_URL}
             EOF
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
             docker compose -f docker-compose.prod.yml pull backend

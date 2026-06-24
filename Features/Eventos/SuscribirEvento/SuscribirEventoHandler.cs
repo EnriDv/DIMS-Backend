@@ -3,19 +3,18 @@ namespace DIMS_Backend.Features.Eventos.SuscribirEvento;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using DIMS_Backend.Models;
-using DIMS_Backend.Infrastructure.BackgroundServices;
+using DIMS_Backend.Infrastructure.Messaging;
 using System.Text.Json;
-using System;
 
 public class SuscribirEventoHandler : IRequestHandler<SuscribirEventoCommand, bool>
 {
     private readonly UcbPortalContext _context;
-    private readonly S3BackgroundQueue _s3Queue;
+    private readonly ISqsService _sqsService;
 
-    public SuscribirEventoHandler(UcbPortalContext context, S3BackgroundQueue s3Queue)
+    public SuscribirEventoHandler(UcbPortalContext context, ISqsService sqsService)
     {
         _context = context;
-        _s3Queue = s3Queue;
+        _sqsService = sqsService;
     }
 
     public async Task<bool> Handle(SuscribirEventoCommand request, CancellationToken cancellationToken)
@@ -43,27 +42,19 @@ public class SuscribirEventoHandler : IRequestHandler<SuscribirEventoCommand, bo
         {
             await _context.SaveChangesAsync(cancellationToken);
 
-            // Fetch user info to include in notification JSON
             var user = await _context.Users.FindAsync(new object[] { request.UsuarioId }, cancellationToken);
             if (user != null)
             {
-                var auditPayload = new
+                var payload = new
                 {
                     Email = user.Email,
                     NombreEstudiante = user.Nombre,
                     EventoId = evento.Id,
                     TituloEvento = evento.Titulo,
-                    FechaSuscripcion = DateTime.UtcNow
+                    FechaSuscripcion = DateTime.UtcNow,
                 };
 
-                var job = new S3UploadJob(
-                    Folder: "subscriptions",
-                    FileName: $"sub-{evento.Id}-{user.Id}-{Guid.NewGuid()}.json",
-                    ContentBody: JsonSerializer.Serialize(auditPayload),
-                    ContentType: "application/json"
-                );
-
-                _s3Queue.Writer.TryWrite(job);
+                await _sqsService.SendMessageAsync(JsonSerializer.Serialize(payload), cancellationToken);
             }
 
             return true;
