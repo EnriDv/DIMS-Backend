@@ -12,6 +12,7 @@ using Amazon.S3.Model;
 using System.Reflection;
 using System.Threading.Tasks;
 using Xunit;
+using DIMS_Backend.Infrastructure.Messaging;
 
 [assembly: CollectionBehavior(DisableTestParallelization = true)]
 
@@ -51,6 +52,12 @@ public class FakeS3Proxy : DispatchProxy
     }
 }
 
+file sealed class NoopSqsService : ISqsService
+{
+    public Task SendMessageAsync(string messageBody, System.Threading.CancellationToken cancellationToken = default)
+        => Task.CompletedTask;
+}
+
 public class BehaviorTestBase : WebApplicationFactory<Program>
 {
     public BehaviorTestBase()
@@ -71,6 +78,11 @@ public class BehaviorTestBase : WebApplicationFactory<Program>
                 services.Remove(s3Descriptor);
             }
             services.AddSingleton<IAmazonS3>(sp => FakeS3Proxy.Create(shouldFail: false));
+
+            // Reemplazar ISqsService con un stub que no hace nada en tests
+            var sqsDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(ISqsService));
+            if (sqsDescriptor != null) services.Remove(sqsDescriptor);
+            services.AddScoped<ISqsService, NoopSqsService>();
         });
 
         // Set configuration variables to avoid crashes in Program.cs
