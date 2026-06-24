@@ -1,5 +1,6 @@
 # DIMS
 
+
 Monorepo del proyecto DIMS con tres piezas:
 
 - [DIMS-Backend](/mnt/c/Users/dikyd/Documents/PROYECTOS/DIMS-Backend): API REST en .NET 10 con PostgreSQL.
